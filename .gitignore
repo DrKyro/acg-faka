@@ -1,0 +1,52 @@
+# Runtime files
+runtime/*
+runtime.log
+server.log
+
+# Temporary files
+install_now.php
+simple_install.html
+test.php
+test_mysql.php
+install-fish.sh
+router.php
+
+# Logs
+*.log
+
+# Cache
+cache/temp/
+cache/compile/
+
+# Upload temp
+upload/temp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Environment
+.env.local
+.env.*.local
+
+# Composer
+vendor/
+composer.lock
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build
+dist/
+build/kernel/Install/Lock

@@ -1,0 +1,154 @@
+// 异次元店铺系统 - VS Code 容器开发环境配置
+// 更多信息: https://aka.ms/vscode-remote/containers
+{
+    "name": "ACG FAKA - 异次元店铺系统",
+    "image": "mcr.microsoft.com/devcontainers/php:1-8.1-bullseye",
+    
+    // 功能特性
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/github-cli:1": {},
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "latest",
+            "nodeGypDependencies": true
+        },
+        
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": true,
+            "installOhMyZsh": true,
+            "username": "vscode",
+            "userUid": 1000,
+            "userGid": 1000
+        }
+    },
+    
+    // 配置相关服务
+    "dockerComposeFile": ".devcontainer/docker-compose.yml",
+    "service": "devcontainer",
+    
+    // 工作区配置
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+    
+    // 端口配置
+    "forwardPorts": [
+        80,      // Web 服务器
+        9000,    // PHP-FPM
+        3306,    // MySQL
+        8080,    // 开发服务器
+        8000,    // PHP 内置服务器
+        6379     // Redis
+    ],
+    
+    // 端口属性
+    "portsAttributes": {
+        "80": {
+            "label": "Web Server",
+            "onAutoForward": "openPreview"
+        },
+        "3306": {
+            "label": "MySQL",
+            "onAutoForward": "ignore"
+        },
+        "8000": {
+            "label": "PHP Dev Server",
+            "onAutoForward": "openBrowser"
+        }
+    },
+    
+    // VS Code 扩展
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                // PHP 扩展
+                "xdebug.php-debug",
+                "bmewburn.vscode-intelephense-client",
+                "recca0120.vscode-phpunit",
+                "bradlc.vscode-tailwindcss",
+                
+                // 通用开发扩展
+                "ms-vscode.vscode-json",
+                "redhat.vscode-yaml",
+                "ms-vscode-remote.remote-containers",
+                "ms-vscode-remote.remote-ssh",
+                "ms-vscode.vscode-github-pull-request",
+                "eamodio.gitlens",
+                
+                // 数据库扩展
+                "mtxr.sqltools",
+                "mtxr.sqltools-driver-mysql",
+                "bradlc.vscode-tailwindcss",
+                
+                // 其他工具
+                "formulahendry.auto-rename-tag",
+                "christian-kohler.path-intellisense",
+                "esbenp.prettier-vscode",
+                "ms-vscode.vscode-typescript-next",
+                
+                // 中文支持
+                "ms-ceintl.vscode-language-pack-zh-hans"
+            ],
+            "settings": {
+                "php.validate.executablePath": "/usr/bin/php",
+                "php.suggest.basic": false,
+                "intelephense.telemetry.enabled": false,
+                "intelephense.files.maxSize": 5000000,
+                "files.associations": {
+                    "*.php": "php"
+                },
+                "editor.formatOnSave": true,
+                "emmet.includeLanguages": {
+                    "php": "html"
+                },
+                "git.autofetch": true,
+                "git.confirmSync": false,
+                "git.ignoreLimitWarning": true,
+                "terminal.integrated.defaultProfile.linux": "fish",
+                "terminal.integrated.profiles.linux": {
+                    "fish": {
+                        "path": "fish"
+                    }
+                }
+            }
+        }
+    },
+    
+    // 启动后运行
+    "postCreateCommand": "bash .devcontainer/postCreate.sh",
+    
+    // 容器创建后立即运行
+    "postStartCommand": "bash .devcontainer/postStart.sh",
+    
+    // 容器关闭时运行
+    "postAttachCommand": "bash .devcontainer/postAttach.sh",
+    
+    // 环境变量
+    "remoteEnv": {
+        "APP_ENV": "development",
+        "APP_DEBUG": "true",
+        "COMPOSER_ALLOW_XDEBUG": "1"
+    },
+    
+    // 挂载点配置
+    "mounts": [
+        "source=${localWorkspaceFolder}/cache,target=/workspace/cache,type=bind",
+        "source=${localWorkspaceFolder}/upload,target=/workspace/upload,type=bind"
+    ],
+    
+    // 运行参数
+    "runArgs": [
+        "--init"
+    ],
+    
+    // 容器启动时运行的命令
+    "containerEnv": {
+        "COMPOSER_PROCESS_TIMEOUT": "2000"
+    },
+    
+    // 用户配置
+    "remoteUser": "vscode",
+    
+    // 初始化命令
+    "initializeCommand": "bash .devcontainer/initialize.sh"
+}

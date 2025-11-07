@@ -1,0 +1,106 @@
+# 异次元店铺系统 - 开发环境容器编排
+version: '3.8'
+
+services:
+  # 开发容器
+  devcontainer:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    container_name: acg-faka-devcontainer
+    ports:
+      - "8000:8000"    # PHP 内置服务器
+      - "9000:9000"    # PHP-FPM
+    environment:
+      - APP_ENV=development
+      - APP_DEBUG=true
+      - DB_HOST=database
+      - DB_PORT=3306
+      - DB_NAME=acg_faka_dev
+      - DB_USER=acg_faka
+      - DB_PASSWORD=dev_password
+    volumes:
+      - ..:/workspace:cached
+      - devcontainer_node_modules:/workspace/node_modules
+      - composer_home:/home/vscode/.config/composer
+    networks:
+      - acg-faka-dev
+    depends_on:
+      - database
+    command: tail -f /dev/null  # 保持容器运行
+
+  # MySQL 数据库
+  database:
+    image: mysql:8.0
+    container_name: acg-faka-dev-db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: dev_root_password
+      MYSQL_DATABASE: acg_faka_dev
+      MYSQL_USER: acg_faka
+      MYSQL_PASSWORD: dev_password
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+      - ../config/database.php:/workspace/config/database.php
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --sql-mode="STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO"
+    networks:
+      - acg-faka-dev
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uacg_faka", "-pdev_password"]
+      timeout: 20s
+      retries: 5
+      interval: 10s
+      start_period: 30s
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: acg-faka-dev-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - acg-faka-dev
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 3s
+      retries: 5
+
+  # PHPMyAdmin (开发时使用)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: acg-faka-dev-phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: database
+      PMA_USER: acg_faka
+      PMA_PASSWORD: dev_password
+      MYSQL_ROOT_PASSWORD: dev_root_password
+    depends_on:
+      - database
+    networks:
+      - acg-faka-dev
+    profiles:
+      - tools  # 通过 profile 启用: docker-compose --profile tools up
+
+volumes:
+  mysql_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+  composer_home:
+    driver: local
+  devcontainer_node_modules:
+    driver: local
+
+networks:
+  acg-faka-dev:
+    driver: bridge
