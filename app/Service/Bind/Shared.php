@@ -17,6 +17,14 @@ use Kernel\Util\Decimal;
 
 class Shared implements \App\Service\Shared
 {
+    private const TYPE_MCY_V4 = 1;
+    private const TYPE_ACG_API = 2;
+
+    private const ACG_CATEGORY_ENDPOINT = '/user/api/index/data';
+    private const ACG_COMMODITY_ENDPOINT = '/user/api/index/commodity';
+    private const ACG_DETAIL_ENDPOINT = '/user/api/index/commodityDetail';
+    private const ACG_TRADE_ENDPOINT = '/user/api/order/trade';
+    private const ACG_DEFAULT_PAY_ID = 1;
 
     #[Inject]
     private Client $http;
@@ -88,6 +96,166 @@ class Shared implements \App\Service\Shared
         return (array)$result['data'];
     }
 
+    private function isAcgType(int $type): bool
+    {
+        return $type === self::TYPE_ACG_API;
+    }
+
+    private function acgGuessShopName(string $domain): string
+    {
+        $host = parse_url($domain, PHP_URL_HOST);
+        return $host ?: trim($domain, '/');
+    }
+
+    private function acgRequestRaw(string $domain, string $cookie, string $path, array $payload = [], string $method = 'POST', ?string $token = null): array
+    {
+        $cookie = trim($cookie);
+        if ($cookie === '') {
+            throw new JSONException("请配置授权Cookie");
+        }
+
+        $method = strtoupper($method);
+        $origin = rtrim($domain, '/');
+        $url = $origin . $path;
+        $headers = [
+            'Accept' => 'application/json, text/javascript, */*; q=0.01',
+            'Cookie' => $cookie,
+            'Origin' => $origin,
+            'Referer' => $origin . '/',
+            'User-Agent' => 'Mozilla/5.0 (compatible; ACG-FakaBot/1.0)',
+            'X-Requested-With' => 'XMLHttpRequest'
+        ];
+
+        if ($token) {
+            $headers['X-CSRF-TOKEN'] = $token;
+        }
+
+        $options = [
+            'headers' => $headers,
+            'timeout' => 30
+        ];
+
+        if ($method === 'GET') {
+            $options['query'] = $payload;
+        } else {
+            $options['form_params'] = $payload;
+        }
+
+        try {
+            $response = Http::make()->request($method, $url, $options);
+            $contents = json_decode($response->getBody()->getContents() ?: "", true) ?: [];
+        } catch (\Throwable $e) {
+            throw new JSONException("连接失败#API");
+        }
+
+        if (!isset($contents['code']) || (int)$contents['code'] !== 200) {
+            throw new JSONException(strip_tags((string)($contents['msg'] ?? "连接失败#API")));
+        }
+
+        return $contents['data'] ?? [];
+    }
+
+    private function acgRequest(\App\Model\Shared $shared, string $path, array $payload = [], string $method = 'POST'): array
+    {
+        return $this->acgRequestRaw($shared->domain, (string)$shared->app_id, $path, $payload, $method, (string)$shared->app_key);
+    }
+
+    private function acgFetchDetail(\App\Model\Shared $shared, string $code): array
+    {
+        $code = trim($code);
+        if ($code === "") {
+            throw new JSONException("上游商品编码缺失");
+        }
+
+        $detail = $this->acgRequest($shared, self::ACG_DETAIL_ENDPOINT, [
+            'commodityId' => (int)$code
+        ], 'GET');
+
+        if (empty($detail)) {
+            throw new JSONException("上游商品不存在或已下架");
+        }
+
+        return $detail;
+    }
+
+    private function normalizeAcgConfig(array|string|null $config): string
+    {
+        if (is_array($config)) {
+            return Ini::toConfig($config);
+        }
+        return (string)($config ?? "");
+    }
+
+    private function normalizeAcgWidget(array|string|null $widget): string
+    {
+        if (is_array($widget)) {
+            return json_encode($widget, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+        $widget = (string)($widget ?? '');
+        return $widget === '' ? '[]' : $widget;
+    }
+
+    private function acgStock(array $detail): int
+    {
+        return (int)($detail['stock'] ?? $detail['card'] ?? 0);
+    }
+
+    private function acgFormatItem(array $detail): array
+    {
+        $config = $this->normalizeAcgConfig($detail['config'] ?? '');
+        $widget = $this->normalizeAcgWidget($detail['widget'] ?? '[]');
+
+        return [
+            'id' => (int)($detail['id'] ?? 0),
+            'name' => (string)($detail['name'] ?? '未命名商品'),
+            'description' => (string)($detail['description'] ?? ''),
+            'price' => (float)($detail['price'] ?? 0),
+            'user_price' => (float)($detail['user_price'] ?? ($detail['price'] ?? 0)),
+            'factory_price' => (float)($detail['price'] ?? 0),
+            'cover' => (string)($detail['cover'] ?? '/favicon.ico'),
+            'delivery_way' => 0,
+            'contact_type' => (int)($detail['contact_type'] ?? 0),
+            'password_status' => (int)($detail['password_status'] ?? 0),
+            'sort' => 0,
+            'code' => (string)($detail['id'] ?? ''),
+            'seckill_status' => (int)($detail['seckill_status'] ?? 0),
+            'seckill_start_time' => $detail['seckill_start_time'] ?? null,
+            'seckill_end_time' => $detail['seckill_end_time'] ?? null,
+            'draft_status' => 0,
+            'inventory_hidden' => (int)($detail['inventory_hidden'] ?? 0),
+            'only_user' => (int)($detail['only_user'] ?? 0),
+            'purchase_count' => (int)($detail['purchase_count'] ?? 0),
+            'minimum' => (int)($detail['minimum'] ?? 1),
+            'maximum' => (int)($detail['maximum'] ?? 0),
+            'widget' => $widget,
+            'config' => $config,
+            'draft_premium' => 0,
+            'stock' => $this->acgStock($detail),
+            'contact' => $detail['contact'] ?? null,
+        ];
+    }
+
+    private function acgInventoryFromDetail(array $detail): array
+    {
+        $config = $this->normalizeAcgConfig($detail['config'] ?? '');
+        try {
+            $configArray = Ini::toArray($config);
+        } catch (\Throwable $e) {
+            $configArray = [];
+        }
+
+        return [
+            'delivery_way' => 0,
+            'draft_status' => 0,
+            'price' => (float)($detail['price'] ?? 0),
+            'user_price' => (float)($detail['user_price'] ?? ($detail['price'] ?? 0)),
+            'config' => $config,
+            'factory_price' => (float)($detail['price'] ?? 0),
+            'is_category' => isset($configArray['category']),
+            'count' => $this->acgStock($detail)
+        ];
+    }
+
     /**
      * @param string $domain
      * @param string $appId
@@ -99,7 +267,12 @@ class Shared implements \App\Service\Shared
      */
     public function connect(string $domain, string $appId, string $appKey, int $type = 0): ?array
     {
-        if ($type == 1) {
+        if ($this->isAcgType($type)) {
+            $this->acgRequestRaw($domain, $appId, self::ACG_CATEGORY_ENDPOINT, [], 'GET', $appKey);
+            return ["shopName" => $this->acgGuessShopName($domain), "balance" => 0];
+        }
+
+        if ($type == self::TYPE_MCY_V4) {
             $data = $this->mcyRequest($domain . "/plugin/open-api/connect", $appId, $appKey);
             return ["shopName" => $data['username'], "balance" => $data['balance']];
         }
@@ -172,7 +345,50 @@ class Shared implements \App\Service\Shared
      */
     public function items(\App\Model\Shared $shared): ?array
     {
-        if ($shared->type == 1) {
+        if ($this->isAcgType((int)$shared->type)) {
+            $categories = $this->acgRequest($shared, self::ACG_CATEGORY_ENDPOINT, [], 'GET');
+            $result = [];
+
+            foreach ($categories as $category) {
+                if (!isset($category['id'])) {
+                    continue;
+                }
+
+                $items = $this->acgRequest($shared, self::ACG_COMMODITY_ENDPOINT, [
+                    'categoryId' => $category['id'],
+                    'limit' => 0,
+                    'page' => 1,
+                    'keywords' => ''
+                ], 'GET');
+
+                $children = [];
+                foreach ($items as $item) {
+                    if (!isset($item['id'])) {
+                        continue;
+                    }
+                    try {
+                        $children[] = $this->item($shared, (string)$item['id']);
+                    } catch (JSONException $e) {
+                        if (str_contains($e->getMessage(), '库存不足')) {
+                            continue;
+                        }
+                        throw $e;
+                    }
+                }
+
+                if (!empty($children)) {
+                    $result[] = [
+                        'id' => $category['id'],
+                        'name' => $category['name'] ?? '未命名分类',
+                        'children' => $children
+                    ];
+                }
+            }
+
+            return $result;
+        }
+
+        if ($shared->type == self::TYPE_MCY_V4) {
             $data = $this->mcyRequest($shared->domain . "/plugin/open-api/items", $shared->app_id, $shared->app_key);
 
             $category = [];
@@ -204,6 +420,11 @@ class Shared implements \App\Service\Shared
      */
     public function item(\App\Model\Shared $shared, string $code): array
     {
+        if ($this->isAcgType((int)$shared->type)) {
+            $detail = $this->acgFetchDetail($shared, $code);
+            return $this->acgFormatItem($detail);
+        }
+
         return $this->post($shared->domain . "/shared/commodity/item", $shared->app_id, $shared->app_key, [
             "code" => $code
         ]);
@@ -223,7 +444,16 @@ class Shared implements \App\Service\Shared
     public function inventoryState(\App\Model\Shared $shared, Commodity $commodity, int $cardId, int $num, string $race): bool
     {
 
-        if ($shared->type == 1) {
+        if ($this->isAcgType((int)$shared->type)) {
+            $detail = $this->acgFetchDetail($shared, $commodity->shared_code);
+            $stock = $this->acgStock($detail);
+            if ($stock <= 0) {
+                return true;
+            }
+            return $num <= $stock;
+        }
+
+        if ($shared->type == self::TYPE_MCY_V4) {
             $config = Ini::toArray($commodity->config);
             $data = $this->mcyRequest($shared->domain . "/plugin/open-api/sku/state", $shared->app_id, $shared->app_key, [
                 'sku_id' => (int)$config['shared_mapping'][$race],
@@ -264,7 +494,46 @@ class Shared implements \App\Service\Shared
         $wg = (array)json_decode((string)$widget, true);
 
 
-        if ($shared->type == 1) {
+        if ($this->isAcgType((int)$shared->type)) {
+            $sharedCode = trim((string)$commodity->shared_code);
+            if ($sharedCode === "") {
+                throw new JSONException("上游商品尚未关联编码");
+            }
+
+            $captcha = trim((string)$shared->app_key);
+            $post = [
+                "contact" => $contact,
+                "password" => $password,
+                "coupon" => "",
+                "num" => $num,
+                "captcha" => $captcha,
+                "commodity_id" => $sharedCode,
+                "card_id" => $cardId,
+                "device" => $device,
+                "race" => $race,
+                "sku" => $sku ?: [],
+                "from" => 0,
+                "pay_id" => self::ACG_DEFAULT_PAY_ID,
+                "request_no" => $requestNo
+            ];
+
+            foreach ($wg as $key => $item) {
+                $post[$key] = $item['value'];
+            }
+
+            $trade = $this->acgRequest($shared, self::ACG_TRADE_ENDPOINT, $post, 'POST');
+
+            /**
+             * @var \App\Service\Shop $shop
+             */
+            $shop = Di::inst()->make(\App\Service\Shop::class);
+            $shop->updateSharedStock($commodity->id, $race, $sku);
+
+            return (string)($trade['secret'] ?? $trade['contents'] ?? "此商品没有发货信息或正在发货中");
+        }
+
+
+        if ($shared->type == self::TYPE_MCY_V4) {
             $config = Ini::toArray($commodity->config);
 
             $post = [
@@ -319,6 +588,10 @@ class Shared implements \App\Service\Shared
      */
     public function draftCard(\App\Model\Shared $shared, string $code, array $map = []): array
     {
+        if ($this->isAcgType((int)$shared->type)) {
+            throw new JSONException("API发卡协议暂不支持预选卡密");
+        }
+
         $card = $this->post($shared->domain . "/shared/commodity/draftCard", $shared->app_id, $shared->app_key, array_merge([
             "code" => $code
         ], $map));
@@ -336,6 +609,10 @@ class Shared implements \App\Service\Shared
      */
     public function getDraft(\App\Model\Shared $shared, string $code, int $cardId): array
     {
+        if ($this->isAcgType((int)$shared->type)) {
+            throw new JSONException("API发卡协议暂不支持预选卡密");
+        }
+
         return $this->post($shared->domain . "/shared/commodity/draft", $shared->app_id, $shared->app_key, [
             "code" => $code,
             "card_id" => $cardId
@@ -352,7 +629,12 @@ class Shared implements \App\Service\Shared
      */
     public function inventory(\App\Model\Shared $shared, Commodity $commodity, string $race = ""): array
     {
-        if ($shared->type == 1) {
+        if ($this->isAcgType((int)$shared->type)) {
+            $detail = $this->acgFetchDetail($shared, $commodity->shared_code);
+            return $this->acgInventoryFromDetail($detail);
+        }
+
+        if ($shared->type == self::TYPE_MCY_V4) {
             $config = Ini::toArray($commodity->config);
 
             $item = $this->mcyRequest($shared->domain . "/plugin/open-api/item", $shared->app_id, $shared->app_key, [
@@ -408,6 +690,11 @@ class Shared implements \App\Service\Shared
      */
     public function getItemStock(\App\Model\Shared $shared, string $code, ?string $race = null, ?array $sku = []): string
     {
+        if ($this->isAcgType((int)$shared->type)) {
+            $detail = $this->acgFetchDetail($shared, $code);
+            return (string)$this->acgStock($detail);
+        }
+
         $stock = $this->post($shared->domain . "/shared/commodity/stock", $shared->app_id, $shared->app_key, [
             "code" => $code,
             "race" => $race,

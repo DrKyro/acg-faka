@@ -1,0 +1,64 @@
+curl 'https://xhs.isinv.cn/user/api/index/commodityDetail?commodityId=41' \
+  -H 'Accept: */*' \
+  -H 'Accept-Language: zh-CN,zh;q=0.9' \
+  -H 'Connection: keep-alive' \
+  -b 'ACG-SHOP=6ut88rqc9hom0echpt0m47g7u3; USER_SESSION=ZXlKMGVYQWlPaUpLVjFRaUxDSjFhV1FpT2pJNU1URXNJbUZzWnlJNklraFRNalUySW4wLmV5SmxlSEJwY21VaU9qRTNOalV4TXpZeU5UQXNJbXh2WjJsdVZHbHRaU0k2SWpJd01qVXRNVEV0TURnZ01ETTZNemM2TXpBaWZRLlRjeVhQU1Vtb2tIT1FtbjlvUmRGVXVmSFdfMGdwMFFUUVBHRDdBcUFVR3c%3D' \
+  -H 'Referer: https://xhs.isinv.cn/' \
+  -H 'Sec-Fetch-Dest: empty' \
+  -H 'Sec-Fetch-Mode: cors' \
+  -H 'Sec-Fetch-Site: same-origin' \
+  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' \
+  -H 'X-Requested-With: XMLHttpRequest' \
+  -H 'sec-ch-ua: "Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"'
+
+
+返回：
+{
+    "code": 200,
+    "msg": "success",
+    "data": {
+        "id": 41,
+        "name": "全新未注册/美国首次卡・60天接码时效・卡网福利品（找客服拿价格更低）・适用于注册・业务自测（777端口 包来码）福利品支持售后",
+        "description": "<p><b><font color=\"#000000\">1.下单购买成功之后卡密自行保存</font></b></p><p><b><font color=\"#000000\">2.卡密前面是手机号码/区号+1&nbsp; 获取验证码之后打开链接查看验证码</font></b></p><p><b><font color=\"#000000\">3.链接打不开时，挂VPN即可&nbsp;前面如果带1就是区号&nbsp;不要输入</font></b></p><p><b><font color=\"#1c487f\">充值越多赠送越多</font></b><br/></p>",
+        "only_user": 0,
+        "purchase_count": 0,
+        "category_id": 3,
+        "cover": "/assets/cache/images/202501151301137631800.jpg",
+        "price": 0.3,
+        "user_price": 0.28,
+        "status": 1,
+        "owner": null,
+        "delivery_way": 0,
+        "contact_type": 0,
+        "password_status": 0,
+        "level_price": "{\"7\":{\"amount\":0.23,\"show\":\"0\"}}",
+        "level_disable": 0,
+        "coupon": 0,
+        "shared_id": null,
+        "shared_code": "",
+        "shared_premium": 0,
+        "shared_premium_type": 0,
+        "seckill_status": 0,
+        "seckill_start_time": null,
+        "seckill_end_time": null,
+        "draft_status": 0,
+        "draft_premium": 0,
+        "inventory_hidden": 0,
+        "widget": "[]",
+        "minimum": 1,
+        "maximum": 0,
+        "shared_sync": 0,
+        "config": "[wholesale]\r\n500=0.2",
+        "wholesale": {
+            "500": "0.2"
+        },
+        "card": 1024,
+        "service_url": "https://qm.qq.com/q/1BA9IBTiDK",
+        "service_qq": "2728971484",
+        "share_url": "https://xhs.isinv.cn?from=2911&cid=3&mid=41",
+        "login": true,
+        "trade_captcha": 1
+    }
+}

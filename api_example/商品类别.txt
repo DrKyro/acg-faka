@@ -1,0 +1,82 @@
+curl 'https://xhs.isinv.cn/user/api/index/data' \
+  -H 'Accept: */*' \
+  -H 'Accept-Language: zh-CN,zh;q=0.9' \
+  -H 'Connection: keep-alive' \
+  -b 'ACG-SHOP=6ut88rqc9hom0echpt0m47g7u3; USER_SESSION=ZXlKMGVYQWlPaUpLVjFRaUxDSjFhV1FpT2pJNU1URXNJbUZzWnlJNklraFRNalUySW4wLmV5SmxlSEJwY21VaU9qRTNOalV4TXpZeU5UQXNJbXh2WjJsdVZHbHRaU0k2SWpJd01qVXRNVEV0TURnZ01ETTZNemM2TXpBaWZRLlRjeVhQU1Vtb2tIT1FtbjlvUmRGVXVmSFdfMGdwMFFUUVBHRDdBcUFVR3c%3D' \
+  -H 'Referer: https://xhs.isinv.cn/' \
+  -H 'Sec-Fetch-Dest: empty' \
+  -H 'Sec-Fetch-Mode: cors' \
+  -H 'Sec-Fetch-Site: same-origin' \
+  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' \
+  -H 'X-Requested-With: XMLHttpRequest' \
+  -H 'sec-ch-ua: "Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"'
+
+响应：
+{
+    "code": 200,
+    "msg": "success",
+    "data": [
+        {
+            "id": 1,
+            "name": "小红书1-3年老号（美国/加拿大）",
+            "sort": 0,
+            "create_time": "2025-01-08 13:39:12",
+            "owner": 0,
+            "icon": "/favicon.ico",
+            "status": 1,
+            "hide": 0,
+            "user_level_config": null,
+            "commodity_count": 27
+        },
+        {
+            "id": 7,
+            "name": "小红书网页CK-比特CK老号",
+            "sort": 1,
+            "create_time": "2025-04-13 23:11:59",
+            "owner": 0,
+            "icon": "/assets/cache/images/202501081334076828730.jpeg",
+            "status": 1,
+            "hide": 0,
+            "user_level_config": null,
+            "commodity_count": 14
+        },
+        {
+            "id": 8,
+            "name": "小红书卡密版地推直登",
+            "sort": 2,
+            "create_time": "2025-10-25 22:55:46",
+            "owner": 0,
+            "icon": "/assets/cache/images/202502091312204283127.jpeg",
+            "status": 1,
+            "hide": 0,
+            "user_level_config": null,
+            "commodity_count": 4
+        },
+        {
+            "id": 3,
+            "name": "小红书首次新号（未注册账号）",
+            "sort": 3,
+            "create_time": "2025-01-08 13:39:48",
+            "owner": 0,
+            "icon": "/assets/cache/images/202410091349311720897.jpeg",
+            "status": 1,
+            "hide": 0,
+            "user_level_config": null,
+            "commodity_count": 8
+        },
+        {
+            "id": 6,
+            "name": "比较适合做截流的账号（建议0-9999粉丝）",
+            "sort": 5,
+            "create_time": "2025-01-08 13:40:00",
+            "owner": 0,
+            "icon": "/assets/cache/images/202410271525081884771.jpeg",
+            "status": 1,
+            "hide": 0,
+            "user_level_config": null,
+            "commodity_count": 17
+        }
+    ]
+}

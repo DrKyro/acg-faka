@@ -97,6 +97,7 @@ class Commodity extends Manage
                 }
             }
             $val['share_url'] = $url . "/item/{$val['id']}";
+            $val['shared_protocol'] = $val['shared']['type'] ?? null;
         }
 
 

@@ -4,8 +4,69 @@
     table = new Table("/admin/api/store/data", "#shared-store-table");
 
     const modal = (title, assign = {}) => {
+        const assignData = {...assign};
+        assignData.acg_cookie = assign?.type == 2 ? assign.app_id : assign?.acg_cookie;
+
+        const toggleProtocolField = (form, value) => {
+            const type = parseInt(value ?? form.getMap("type") ?? 0);
+            if (type === 2) {
+                form.hide("app_id");
+                form.hide("app_key");
+                form.show("acg_cookie");
+                const preset = form.getMap("acg_cookie") ?? assignData.acg_cookie ?? assignData.app_id ?? "";
+                if (preset) {
+                    form.setTextarea("acg_cookie", preset);
+                    form.setData("acg_cookie", preset);
+                }
+            } else {
+                form.show("app_id");
+                form.show("app_key");
+                form.hide("acg_cookie");
+            }
+        };
+
+        const encodeCookie = (cookie) => {
+            let normalized = cookie;
+            try {
+                normalized = unescape(encodeURIComponent(cookie));
+            } catch (e) {
+            }
+            const base64 = window.btoa(normalized);
+            return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/u, '');
+        };
+
+        const submitStore = (data, index) => {
+            const type = parseInt(data.type ?? 0);
+            if (type === 2) {
+                const cookie = (data.acg_cookie ?? "").trim();
+                if (!cookie) {
+                    message.error("请粘贴授权Cookie");
+                    return;
+                }
+                data.app_id = encodeCookie(cookie);
+                data.app_key = data.app_key ?? '';
+            } else {
+                if (!data.app_id) {
+                    message.error("商户ID不能为空");
+                    return;
+                }
+                if (!data.app_key) {
+                    message.error("商户密钥不能为空");
+                    return;
+                }
+            }
+            delete data.acg_cookie;
+            util.post('/admin/api/store/save', data, res => {
+                layer.close(index);
+                message.alert(res.msg ?? '（＾∀＾）保存成功', 'success');
+                table.refresh();
+            }, error => {
+                message.alert(error.msg, 'error');
+            });
+        };
+
         component.popup({
-            submit: '/admin/api/store/save',
+            submit: submitStore,
             tab: [
                 {
                     name: title,
@@ -17,7 +78,9 @@
                             placeholder: "请选择协议",
                             dict: "_shared_type",
                             default: 0,
-                            required: true
+                            required: true,
+                            change: (form, val) => toggleProtocolField(form, val),
+                            complete: (form, val) => toggleProtocolField(form, val)
                         },
                         {
                             title: "店铺地址",
@@ -28,18 +91,26 @@
                         },
                         {
                             title: "商户ID", name: "app_id", type: "input", placeholder: "请输入商户ID",
-                            required: true
+                            required: false
                         },
                         {
                             title: "商户密钥", name: "app_key", type: "input", placeholder: "请输入商户密钥",
-                            required: true
+                            required: false
+                        },
+                        {
+                            title: "授权Cookie",
+                            name: "acg_cookie",
+                            type: "textarea",
+                            placeholder: "示例：ACG-SHOP=xxx; USER_SESSION=xxx",
+                            tips: "在上游站点登录后台后复制浏览器Cookie，粘贴到此处（仅API发卡协议需要）",
+                            hide: true
                         },
                     ]
                 },
             ],
             autoPosition: true,
             height: "auto",
-            assign: assign,
+            assign: assignData,
             width: "580px",
             done: (res) => {
                 table.refresh();
@@ -211,6 +282,6 @@
 
 
     $('.btn-app-create').click(function () {
-        modal(`${util.icon("fa-duotone fa-regular fa-link")} 添加远端店铺`);
+        modal(`${util.icon("fa-duotone fa-regular fa-link")} 添加远端店铺ACG`);
     });
 }();

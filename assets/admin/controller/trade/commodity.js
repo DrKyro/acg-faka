@@ -734,6 +734,14 @@ ACC_JP_6M_0KLD-22MM-PP31║地区:日区·时长:6个月
             field: 'shared', title: '对接平台', formatter: format.shared
         }
         , {
+            field: 'shared_protocol', title: '对接协议', formatter: (_, item) => {
+                if (!item?.shared_protocol && item?.shared_protocol !== 0) {
+                    return '-';
+                }
+                return _Dict.result("_shared_type", item.shared_protocol) ?? '-';
+            }
+        }
+        , {
             field: 'status', title: '状态', type: "switch", text: "上架|下架", reload: true, class: "nowrap"
         },
         {

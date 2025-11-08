@@ -61,17 +61,38 @@ class Store extends Manage
             throw new JSONException("店铺地址不能为空");
         }
 
-        if (!$map['app_id']) {
-            throw new JSONException("商户ID不能为空");
-        }
-
-        if (!$map['app_key']) {
-            throw new JSONException("商户密钥不能为空");
-        }
-
         $map['domain'] = trim($map['domain'], "/");
+        $type = (int)$map['type'];
 
-        $connect = $this->shared->connect($map['domain'], $map['app_id'], $map['app_key'], (int)$map['type']);
+        if ($type === 2) {
+            $cookieEncoded = trim((string)($map['acg_cookie'] ?? $map['app_id'] ?? ''));
+            if ($cookieEncoded === '') {
+                throw new JSONException("授权Cookie不能为空");
+            }
+            $cookieEncoded = strtr($cookieEncoded, '-_', '+/');
+            $padding = strlen($cookieEncoded) % 4;
+            if ($padding > 0) {
+                $cookieEncoded .= str_repeat('=', 4 - $padding);
+            }
+            $cookie = base64_decode($cookieEncoded, true);
+            if ($cookie === false || $cookie === '') {
+                throw new JSONException("授权Cookie格式错误");
+            }
+            $map['app_id'] = $cookie;
+            $map['app_key'] = trim((string)($map['app_key'] ?? ''));
+        } else {
+            if (!$map['app_id']) {
+                throw new JSONException("商户ID不能为空");
+            }
+
+            if (!$map['app_key']) {
+                throw new JSONException("商户密钥不能为空");
+            }
+        }
+
+        unset($map['acg_cookie']);
+
+        $connect = $this->shared->connect($map['domain'], $map['app_id'], $map['app_key'], $type);
 
         $map['name'] = strip_tags((string)$connect['shopName']);
         $map['balance'] = (float)$connect['balance'];

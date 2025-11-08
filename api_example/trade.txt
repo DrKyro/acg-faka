@@ -1,0 +1,29 @@
+curl 'https://xhs.isinv.cn/user/api/order/trade' \
+  -H 'Accept: */*' \
+  -H 'Accept-Language: zh-CN,zh;q=0.9' \
+  -H 'Connection: keep-alive' \
+  -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' \
+  -b 'ACG-SHOP=6ut88rqc9hom0echpt0m47g7u3; USER_SESSION=ZXlKMGVYQWlPaUpLVjFRaUxDSjFhV1FpT2pJNU1URXNJbUZzWnlJNklraFRNalUySW4wLmV5SmxlSEJwY21VaU9qRTNOalV4TXpZeU5UQXNJbXh2WjJsdVZHbHRaU0k2SWpJd01qVXRNVEV0TURnZ01ETTZNemM2TXpBaWZRLlRjeVhQU1Vtb2tIT1FtbjlvUmRGVXVmSFdfMGdwMFFUUVBHRDdBcUFVR3c%3D' \
+  -H 'Origin: https://xhs.isinv.cn' \
+  -H 'Referer: https://xhs.isinv.cn/' \
+  -H 'Sec-Fetch-Dest: empty' \
+  -H 'Sec-Fetch-Mode: cors' \
+  -H 'Sec-Fetch-Site: same-origin' \
+  -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' \
+  -H 'X-Requested-With: XMLHttpRequest' \
+  -H 'sec-ch-ua: "Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  --data-raw 'contact=Drkyro&password=p1323811540&coupon=&num=1&captcha=6256&commodity_id=41&card_id=0&pay_id=1&device=0&from=0&race='
+
+返回：
+{
+    "code": 200,
+    "msg": "下单成功",
+    "data": {
+        "url": null,
+        "amount": 0.28,
+        "tradeNo": "454251108034413844",
+        "secret": "3503530334\t收发一体链接\thttp://api.sms28.top/uuid-page/844e91b26ea343feb1f76d3123be2a37\t收验证码链接\thttp://api777sms.com/api/get_sms?key=a85fc8ebb96534210d577cd4c115b2ba"
+    }
+}
