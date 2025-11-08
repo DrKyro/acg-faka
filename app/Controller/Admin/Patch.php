@@ -38,24 +38,4 @@ class Patch extends \App\Controller\Base\View\Manage
         Client::redirect("/admin/dashboard/index", "补丁安装成功，请回到后台继续更新。", 10);
     }
 
-    /**
-     * 扩展共享店铺凭证字段长度
-     * @return void
-     */
-    public function updateSharedCredentialFields(): void
-    {
-        $prefix = config('database')['prefix'] ?? '';
-        $table = $prefix . "shared";
-        $tableName = str_replace('`', '``', $table);
-
-        try {
-            Manager::statement("ALTER TABLE `{$tableName}` MODIFY COLUMN `app_id` varchar(1024) NOT NULL");
-            Manager::statement("ALTER TABLE `{$tableName}` MODIFY COLUMN `app_key` varchar(255) NOT NULL DEFAULT ''");
-        } catch (\Throwable $e) {
-            Client::redirect("/admin/dashboard/index", "补丁执行失败：" . $e->getMessage(), 10);
-            return;
-        }
-
-        Client::redirect("/admin/dashboard/index", "共享店铺凭证字段升级成功。", 8);
-    }
 }

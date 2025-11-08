@@ -400,6 +400,7 @@ CREATE TABLE `__PREFIX__shared`  (
                                      `domain` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '店铺地址',
                                      `app_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '商户ID',
                                      `app_key` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '密钥',
+                                     `cookie` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '授权Cookie',
                                      `create_time` datetime NOT NULL COMMENT '创建时间',
                                      `balance` decimal(14, 2) UNSIGNED NOT NULL DEFAULT 0.00 COMMENT '余额(缓存)',
                                      PRIMARY KEY (`id`) USING BTREE,

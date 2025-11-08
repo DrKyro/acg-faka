@@ -17,9 +17,10 @@ interface Shared
      * @param string $appId
      * @param string $appKey
      * @param int $type
+     * @param string $cookie
      * @return array|null
      */
-    public function connect(string $domain, string $appId, string $appKey, int $type = 0): ?array;
+    public function connect(string $domain, string $appId, string $appKey, int $type = 0, string $cookie = ''): ?array;
 
 
     /**

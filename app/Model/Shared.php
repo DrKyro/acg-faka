@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $domain
  * @property string $app_id
  * @property string $app_key
+ * @property string|null $cookie
  * @property string $create_time
  * @property float $balance
  */

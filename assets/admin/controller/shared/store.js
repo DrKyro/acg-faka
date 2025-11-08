@@ -4,8 +4,53 @@
     table = new Table("/admin/api/store/data", "#shared-store-table");
 
     const modal = (title, assign = {}) => {
+        const normalizeCookieValue = (value = "") => {
+            let normalized = value.trim();
+            if (!normalized) {
+                return "";
+            }
+            try {
+                for (let i = 0; i < 3; i++) {
+                    if (!/%[0-9A-Fa-f]{2}/.test(normalized)) {
+                        break;
+                    }
+                    const decoded = decodeURIComponent(normalized);
+                    if (decoded === normalized) {
+                        break;
+                    }
+                    normalized = decoded;
+                }
+            } catch (e) {
+            }
+            return normalized;
+        };
+
+        const decodeLegacyCookie = (value = "") => {
+            const raw = normalizeCookieValue(value ?? "");
+            if (!raw) {
+                return "";
+            }
+            let normalized = raw.replace(/-/g, '+').replace(/_/g, '/');
+            const padding = normalized.length % 4;
+            if (padding > 0) {
+                normalized += '='.repeat(4 - padding);
+            }
+            try {
+                const binary = window.atob(normalized);
+                try {
+                    const percentEncoded = Array.from(binary).map(char => '%' + char.charCodeAt(0).toString(16).padStart(2, '0')).join('');
+                    return normalizeCookieValue(decodeURIComponent(percentEncoded));
+                } catch (err) {
+                    return normalizeCookieValue(binary);
+                }
+            } catch (e) {
+                return normalizeCookieValue(raw);
+            }
+        };
+
         const assignData = {...assign};
-        assignData.acg_cookie = assign?.type == 2 ? assign.app_id : assign?.acg_cookie;
+        const legacyCookie = assign?.type == 2 ? decodeLegacyCookie(assign?.app_id ?? "") : "";
+        assignData.acg_cookie = assign?.type == 2 ? normalizeCookieValue(assign.cookie || legacyCookie || assign?.acg_cookie || "") : assign?.acg_cookie;
 
         const toggleProtocolField = (form, value) => {
             const type = parseInt(value ?? form.getMap("type") ?? 0);
@@ -13,7 +58,7 @@
                 form.hide("app_id");
                 form.hide("app_key");
                 form.show("acg_cookie");
-                const preset = form.getMap("acg_cookie") ?? assignData.acg_cookie ?? assignData.app_id ?? "";
+                const preset = form.getMap("acg_cookie") ?? assignData.acg_cookie ?? "";
                 if (preset) {
                     form.setTextarea("acg_cookie", preset);
                     form.setData("acg_cookie", preset);
@@ -25,26 +70,17 @@
             }
         };
 
-        const encodeCookie = (cookie) => {
-            let normalized = cookie;
-            try {
-                normalized = unescape(encodeURIComponent(cookie));
-            } catch (e) {
-            }
-            const base64 = window.btoa(normalized);
-            return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/u, '');
-        };
-
         const submitStore = (data, index) => {
             const type = parseInt(data.type ?? 0);
             if (type === 2) {
-                const cookie = (data.acg_cookie ?? "").trim();
+                const cookie = normalizeCookieValue(data.acg_cookie ?? "");
                 if (!cookie) {
                     message.error("请粘贴授权Cookie");
                     return;
                 }
-                data.app_id = encodeCookie(cookie);
-                data.app_key = data.app_key ?? '';
+                data.cookie = cookie;
+                data.app_id = (data.app_id ?? '').trim();
+                data.app_key = (data.app_key ?? '').trim();
             } else {
                 if (!data.app_id) {
                     message.error("商户ID不能为空");
@@ -54,6 +90,7 @@
                     message.error("商户密钥不能为空");
                     return;
                 }
+                data.cookie = '';
             }
             delete data.acg_cookie;
             util.post('/admin/api/store/save', data, res => {

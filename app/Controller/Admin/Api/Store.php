@@ -65,21 +65,17 @@ class Store extends Manage
         $type = (int)$map['type'];
 
         if ($type === 2) {
-            $cookieEncoded = trim((string)($map['acg_cookie'] ?? $map['app_id'] ?? ''));
-            if ($cookieEncoded === '') {
+            $cookieInput = trim((string)($map['acg_cookie'] ?? $map['cookie'] ?? ''));
+            if ($cookieInput === '') {
                 throw new JSONException("授权Cookie不能为空");
             }
-            $cookieEncoded = strtr($cookieEncoded, '-_', '+/');
-            $padding = strlen($cookieEncoded) % 4;
-            if ($padding > 0) {
-                $cookieEncoded .= str_repeat('=', 4 - $padding);
-            }
-            $cookie = base64_decode($cookieEncoded, true);
-            if ($cookie === false || $cookie === '') {
+            $cookie = $this->normalizeCookieInput($cookieInput);
+            if ($cookie === '') {
                 throw new JSONException("授权Cookie格式错误");
             }
-            $map['app_id'] = $cookie;
-            $map['app_key'] = trim((string)($map['app_key'] ?? ''));
+            $map['cookie'] = $cookie;
+            $map['app_id'] = "0";
+            $map['app_key'] = "0";
         } else {
             if (!$map['app_id']) {
                 throw new JSONException("商户ID不能为空");
@@ -88,11 +84,12 @@ class Store extends Manage
             if (!$map['app_key']) {
                 throw new JSONException("商户密钥不能为空");
             }
+            $map['cookie'] = '';
         }
 
         unset($map['acg_cookie']);
 
-        $connect = $this->shared->connect($map['domain'], $map['app_id'], $map['app_key'], $type);
+        $connect = $this->shared->connect($map['domain'], $map['app_id'], $map['app_key'], $type, (string)($map['cookie'] ?? ''));
 
         $map['name'] = strip_tags((string)$connect['shopName']);
         $map['balance'] = (float)$connect['balance'];
@@ -121,7 +118,7 @@ class Store extends Manage
         if (!$shared) {
             throw new JSONException("未找到该店铺");
         }
-        $connect = $this->shared->connect($shared->domain, $shared->app_id, $shared->app_key, $shared->type);
+        $connect = $this->shared->connect($shared->domain, $shared->app_id, $shared->app_key, $shared->type, (string)$shared->cookie);
         $shared->name = strip_tags((string)$connect['shopName']);
         $shared->balance = (float)$connect['balance'];
         $shared->save();
@@ -283,5 +280,58 @@ class Store extends Manage
 
         ManageLog::log($this->getManage(), "[店铺共享]删除操作，共计：" . count($_POST['list']));
         return $this->json(200, '（＾∀＾）移除成功');
+    }
+
+    /**
+     * @param string $input
+     * @return string
+     */
+    private function normalizeCookieInput(string $input): string
+    {
+        $candidate = $this->decodeCookieEncoding(trim($input));
+        if ($candidate === '') {
+            return '';
+        }
+
+        if (str_contains($candidate, '=')) {
+            $trimmed = rtrim($candidate, '=');
+            if (str_contains($trimmed, '=')) {
+                return $candidate;
+            }
+        }
+
+        if (!preg_match('/^[A-Za-z0-9+\\/_-]+=*$/', $candidate)) {
+            return $candidate;
+        }
+
+        $normalized = strtr($candidate, '-_', '+/');
+        $padding = strlen($normalized) % 4;
+        if ($padding > 0) {
+            $normalized .= str_repeat('=', 4 - $padding);
+        }
+
+        $decoded = base64_decode($normalized, true);
+        if ($decoded === false || $decoded === '') {
+            return $candidate;
+        }
+
+        $reEncoded = rtrim(strtr(base64_encode($decoded), '+/', '-_'), '=');
+        return $reEncoded === rtrim($candidate, '=') ? $decoded : $candidate;
+    }
+
+    private function decodeCookieEncoding(string $value): string
+    {
+        $decoded = $value;
+        for ($i = 0; $i < 3; $i++) {
+            if (!preg_match('/%[0-9A-Fa-f]{2}/', $decoded)) {
+                break;
+            }
+            $new = rawurldecode($decoded);
+            if ($new === $decoded) {
+                break;
+            }
+            $decoded = $new;
+        }
+        return $decoded;
     }
 }

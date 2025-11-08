@@ -69,12 +69,6 @@ init() {
     # 创建启动脚本可执行
     chmod +x "$0"
     
-    # 复制数据库配置
-    if [ -f "config/database.php" ]; then
-        cp config/database.php config/database.php
-        print_success "数据库配置已更新"
-    fi
-    
     # 安装 Composer 依赖 (如果本地没有vendor目录)
     if [ ! -d "vendor" ]; then
         print_info "安装 Composer 依赖..."
@@ -98,8 +92,7 @@ start() {
     # 检查服务状态
     if docker-compose ps | grep -q "Up"; then
         print_success "服务启动成功！"
-        print_info "访问地址: http://localhost:8080"
-        print_info "PHPMyAdmin: http://localhost:8081"
+        print_info "访问地址: http://localhost:8088"
         print_info "数据库端口: 3306"
     else
         print_error "服务启动失败，请检查日志"
@@ -158,6 +151,46 @@ clean() {
     fi
 }
 
+# 删除旧的重新构建启动
+rebuild() {
+    print_info "删除旧的容器和镜像，重新构建并启动服务..."
+    
+    # 停止服务
+    print_info "停止服务..."
+    docker-compose down
+    
+    # 清理旧的容器和镜像
+    print_info "清理旧的容器和镜像..."
+    docker-compose down -v --remove-orphans
+    docker rmi $(docker images --filter "reference=$(basename "$PWD")*" -q) 2>/dev/null || true
+    docker system prune -f
+    
+    # 重新构建镜像
+    print_info "重新构建镜像..."
+    docker-compose build --no-cache
+    
+    # 创建必要目录
+    create_directories
+    
+    # 启动服务
+    print_info "启动服务..."
+    docker-compose up -d
+    
+    # 等待服务启动
+    print_info "等待服务启动..."
+    sleep 10
+    
+    # 检查服务状态
+    if docker-compose ps | grep -q "Up"; then
+        print_success "重新构建并启动成功！"
+        print_info "访问地址: http://localhost:8088"
+        print_info "数据库端口: 3306"
+    else
+        print_error "服务启动失败，请检查日志"
+        docker-compose logs
+    fi
+}
+
 # 安装向导
 install_wizard() {
     print_info "启动安装向导..."
@@ -186,6 +219,7 @@ show_help() {
     echo "  status      查看服务状态"
     echo "  logs        查看日志"
     echo "  build       构建镜像"
+    echo "  rebuild     删除旧的重新构建并启动"
     echo "  install     启动安装向导"
     echo "  clean       清理所有资源"
     echo "  help        显示帮助信息"
@@ -194,6 +228,7 @@ show_help() {
     echo "  $0 init && $0 start    # 初始化并启动服务"
     echo "  $0 logs                # 查看日志"
     echo "  $0 install             # 启动安装向导"
+    echo "  $0 rebuild             # 删除旧的镜像重新构建并启动"
 }
 
 # 主程序
@@ -224,6 +259,10 @@ main() {
         "build")
             check_requirements
             build
+            ;;
+        "rebuild")
+            check_requirements
+            rebuild
             ;;
         "clean")
             clean

@@ -73,23 +73,6 @@ services:
       - acg-faka-network
     command: redis-server --appendonly yes
 
-  # PHPMyAdmin 数据库管理工具 (可选)
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin:latest
-    container_name: acg-faka-phpmyadmin
-    restart: unless-stopped
-    ports:
-      - "8082:80"
-    environment:
-      PMA_HOST: database
-      PMA_USER: acg_faka
-      PMA_PASSWORD: acg_faka_password
-      MYSQL_ROOT_PASSWORD: acg_faka_root_password
-    depends_on:
-      - database
-    networks:
-      - acg-faka-network
-
 volumes:
   mysql_data:
     driver: local

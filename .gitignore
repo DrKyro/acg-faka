@@ -50,3 +50,5 @@ yarn-error.log
 # Build
 dist/
 build/kernel/Install/Lock
+Lock
+cache/

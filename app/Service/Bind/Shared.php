@@ -157,7 +157,8 @@ class Shared implements \App\Service\Shared
 
     private function acgRequest(\App\Model\Shared $shared, string $path, array $payload = [], string $method = 'POST'): array
     {
-        return $this->acgRequestRaw($shared->domain, (string)$shared->app_id, $path, $payload, $method, (string)$shared->app_key);
+        $cookie = $this->resolveAcgCookie($shared->cookie, $shared->app_id);
+        return $this->acgRequestRaw($shared->domain, $cookie, $path, $payload, $method, (string)$shared->app_key);
     }
 
     private function acgFetchDetail(\App\Model\Shared $shared, string $code): array
@@ -261,14 +262,16 @@ class Shared implements \App\Service\Shared
      * @param string $appId
      * @param string $appKey
      * @param int $type
+     * @param string $cookie
      * @return array|null
      * @throws GuzzleException
      * @throws JSONException
      */
-    public function connect(string $domain, string $appId, string $appKey, int $type = 0): ?array
+    public function connect(string $domain, string $appId, string $appKey, int $type = 0, string $cookie = ''): ?array
     {
         if ($this->isAcgType($type)) {
-            $this->acgRequestRaw($domain, $appId, self::ACG_CATEGORY_ENDPOINT, [], 'GET', $appKey);
+            $credential = $this->resolveAcgCookie($cookie, $appId);
+            $this->acgRequestRaw($domain, $credential, self::ACG_CATEGORY_ENDPOINT, [], 'GET', $appKey);
             return ["shopName" => $this->acgGuessShopName($domain), "balance" => 0];
         }
 
@@ -775,5 +778,65 @@ class Shared implements \App\Service\Shared
     {
         $_tmp = new Decimal($amount, 2);
         return $type == 0 ? $_tmp->add($premium)->getAmount() : $_tmp->add((new Decimal($premium, 3))->mul($amount)->getAmount())->getAmount();
+    }
+
+    private function resolveAcgCookie(?string ...$candidates): string
+    {
+        foreach ($candidates as $candidate) {
+            $normalized = $this->normalizeAcgCookieCredential($candidate ?? '');
+            if ($normalized !== '') {
+                return $normalized;
+            }
+        }
+        return '';
+    }
+
+    private function normalizeAcgCookieCredential(string $credential): string
+    {
+        $candidate = $this->decodePercentEncodedCookie(trim($credential));
+        if ($candidate === '') {
+            return '';
+        }
+
+        if (str_contains($candidate, '=')) {
+            $trimmed = rtrim($candidate, '=');
+            if (str_contains($trimmed, '=')) {
+                return $candidate;
+            }
+        }
+
+        if (!preg_match('/^[A-Za-z0-9+\\/_-]+=*$/', $candidate)) {
+            return $candidate;
+        }
+
+        $normalized = strtr($candidate, '-_', '+/');
+        $padding = strlen($normalized) % 4;
+        if ($padding > 0) {
+            $normalized .= str_repeat('=', 4 - $padding);
+        }
+
+        $decoded = base64_decode($normalized, true);
+        if ($decoded === false || $decoded === '') {
+            return $candidate;
+        }
+
+        $reEncoded = rtrim(strtr(base64_encode($decoded), '+/', '-_'), '=');
+        return $reEncoded === rtrim($candidate, '=') ? $decoded : $candidate;
+    }
+
+    private function decodePercentEncodedCookie(string $value): string
+    {
+        $decoded = $value;
+        for ($i = 0; $i < 3; $i++) {
+            if (!preg_match('/%[0-9A-Fa-f]{2}/', $decoded)) {
+                break;
+            }
+            $new = rawurldecode($decoded);
+            if ($new === $decoded) {
+                break;
+            }
+            $decoded = $new;
+        }
+        return $decoded;
     }
 }
