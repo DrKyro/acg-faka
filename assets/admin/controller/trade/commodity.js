@@ -742,6 +742,14 @@ ACC_JP_6M_0KLD-22MM-PP31║地区:日区·时长:6个月
             }
         }
         , {
+            field: 'shared_sync',
+            title: '远端同步',
+            type: "switch",
+            text: "开启|关闭",
+            reload: true,
+            show: item => item?.shared_id > 0
+        }
+        , {
             field: 'status', title: '状态', type: "switch", text: "上架|下架", reload: true, class: "nowrap"
         },
         {
@@ -1004,6 +1012,12 @@ ACC_JP_6M_0KLD-22MM-PP31║地区:日区·时长:6个月
                         {
                             title: "推荐商品",
                             name: "recommend",
+                            type: "switch",
+                            text: "启用"
+                        },
+                        {
+                            title: "远端信息同步",
+                            name: "shared_sync",
                             type: "switch",
                             text: "启用"
                         },
