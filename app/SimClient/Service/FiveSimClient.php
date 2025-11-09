@@ -14,7 +14,7 @@ class FiveSimClient
     public function __construct(private readonly string $token)
     {
         if ($token === '') {
-            throw new RuntimeException('请先配置 5sim Token');
+            throw new RuntimeException('请先配置接码Token');
         }
 
         $this->client = new Client([
@@ -37,7 +37,7 @@ class FiveSimClient
             $response = $this->client->request($method, $uri, $options);
             return json_decode((string)$response->getBody(), true) ?? [];
         } catch (GuzzleException $e) {
-            throw new RuntimeException('请求 5sim 接口失败：' . $e->getMessage());
+            throw new RuntimeException('请求接口失败：' . $e->getMessage());
         }
     }
 
