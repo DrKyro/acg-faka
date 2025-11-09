@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小红书英国接码</title>
+    <link rel="stylesheet" href="/assets/static/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/static/font/font-awesome-4.7.0/css/font-awesome.min.css">
+    <script src="/assets/static/jquery.min.js"></script>
+    <script src="/assets/static/layer/layer.js"></script>
+    <style>
+        body {
+            background-color: #f3f6fb;
+            min-height: 100vh;
+        }
+
+        .sim-header {
+            background: #ffffff;
+            border-bottom: 1px solid #e9edf5;
+            padding: 15px 0;
+        }
+
+        .sim-header .logo {
+            font-weight: 700;
+            font-size: 20px;
+            color: #3f4254;
+        }
+
+        .sim-header .nav-link {
+            font-weight: 600;
+            color: #3f4254;
+        }
+
+        .hero-card {
+            background: linear-gradient(120deg, #1c7fe7, #6230f5);
+            border-radius: 16px;
+            color: #fff;
+            padding: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 20px 40px rgba(34, 89, 255, 0.15);
+        }
+
+        .hero-card h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .hero-card p {
+            margin-bottom: 16px;
+            opacity: 0.9;
+            font-size: 15px;
+        }
+
+        .hero-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .gradient-btn {
+            padding: 16px 40px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            background-size: 300% 300%;
+            color: #fff;
+            font-weight: 700;
+            font-size: 18px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.4), 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            animation: gradientShift 3s ease-in-out infinite;
+            cursor: pointer;
+        }
+
+        .gradient-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .gradient-btn:hover::before {
+            left: 100%;
+        }
+
+        .gradient-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 25px 50px rgba(255, 107, 107, 0.5), 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .gradient-btn:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+
+        .gradient-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            animation: none;
+            transform: none;
+        }
+
+        .loading-btn {
+            position: relative;
+            color: transparent !important;
+        }
+
+        .loading-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .btn-refreshing {
+            position: relative;
+        }
+
+        .btn-refreshing i {
+            animation: rotate 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes gradientShift {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .config-info {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .config-info p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .history-card {
+            margin-top: 24px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(82, 63, 105, 0.08);
+        }
+
+        .history-card table {
+            margin-bottom: 0;
+        }
+
+        .sms-cell {
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.6;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: #f4f6fd;
+            box-shadow: inset 0 0 0 1px #e4e8f3;
+            min-height: 60px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-waiting {
+            background: rgba(255, 174, 0, 0.15);
+            color: #b37a00;
+        }
+
+        .status-done {
+            background: rgba(0, 201, 167, 0.18);
+            color: #009776;
+        }
+
+        .status-cancel,
+        .status-timeout,
+        .status-error {
+            background: rgba(255, 99, 132, 0.15);
+            color: #ce2f52;
+        }
+
+        .table > :not(caption) > * > * {
+            vertical-align: middle;
+        }
+
+        .operation-btn {
+            margin-right: 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="sim-header">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div class="logo"><i class="fa fa-qrcode"></i> 小红书英国接码</div>
+        <div>
+            <a class="nav-link d-inline-block" href="/"><i class="fa fa-shopping-cart"></i> 返回购物</a>
+        </div>
+    </div>
+</div>
+
+<div class="container my-4">
+    <div class="hero-card">
+        <div>
+            <h1>一键申请英国小红书号码</h1>
+            <p>点击开始接码，申请英国号码。</p>
+        </div>
+        <div class="hero-right">
+            <button id="startReceive" class="gradient-btn">
+                <i class="fa fa-magic"></i> 开始接码
+            </button>
+        </div>
+    </div>
+
+    <div class="history-card mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="fa fa-history"></i> 接码历史</h4>
+            <small class="text-muted">最多展示最近 20 条记录</small>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle" id="orderTable">
+                <thead>
+                <tr>
+                    <th style="width: 150px;">手机号</th>
+                    <th style="width: 120px;">状态</th>
+                    <th style="width: 320px;">短信</th>
+                    <th style="width: 150px;">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                #{if $orders|count == 0}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">暂无接码记录，先点击“开始接码”试试吧</td>
+                    </tr>
+                #{else}
+                    #{foreach $orders as $item}
+                        <tr data-id="#{$item.id}">
+                            <td class="fw-bold">#{$item.phone|escape}</td>
+                            <td>
+                                <span class="status-badge #{if $item.status=='WAITING'}status-waiting#{elseif $item.status=='RECEIVED'}status-done#{else}status-error#{/if}">
+                                    #{$item.status_text|escape}
+                                </span>
+                            </td>
+                    <td>
+                        <div class="sms-cell">
+                            #{if $item.sms_text}
+                                #{$item.sms_text|escape}
+                            #{else}
+                                <span class="text-muted">等待短信</span>
+                            #{/if}
+                        </div>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary operation-btn js-refresh"><i class="fa fa-refresh"></i> 刷新</button>
+                        #{if $item.status == 'WAITING'}
+                        <button class="btn btn-sm btn-outline-warning operation-btn js-cancel"><i class="fa fa-times"></i> 取消号码</button>
+                        #{/if}
+                    </td>
+                        </tr>
+                    #{/foreach}
+                #{/if}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SimClientPage = (function ($) {
+        const state = {
+            orders: #{$orders|@json_encode},
+            polling: null,
+            interval: Math.max(1, #{$config.poll_interval|default:1}),
+        };
+
+        const api = {
+            post(url, data = {}) {
+                return $.post(url, data, null, 'json');
+            },
+            get(url, data = {}) {
+                return $.get(url, data, null, 'json');
+            }
+        };
+
+        function toast(msg) {
+            if (typeof layer !== 'undefined' && layer && typeof layer.msg === 'function') {
+                layer.msg(msg);
+                return;
+            }
+            alert(msg);
+        }
+
+        function escapeHtml(value) {
+            return $('<div/>').text(value || '').html();
+        }
+
+        function statusBadge(order) {
+            const cls = order.status_class || (order.status === 'WAITING' ? 'status-waiting' : order.status === 'RECEIVED' ? 'status-done' : 'status-error');
+            return `<span class="status-badge ${cls}">${escapeHtml(order.status_text)}</span>`;
+        }
+
+        function buildRow(order) {
+            const smsContent = order.sms_text ? escapeHtml(order.sms_text) : '<span class="text-muted">等待短信</span>';
+            const cancelBtn = order.status === 'WAITING'
+                ? '<button class="btn btn-sm btn-outline-warning operation-btn js-cancel"><i class="fa fa-times"></i> 取消等待</button>'
+                : '';
+
+            return `
+                <tr data-id="${order.id}">
+                    <td class="fw-bold">${escapeHtml(order.phone)}</td>
+                    <td>${statusBadge(order)}</td>
+                    <td><div class="sms-cell">${smsContent}</div></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary operation-btn js-refresh"><i class="fa fa-refresh"></i> 刷新</button>
+                        ${cancelBtn}
+                    </td>
+                </tr>`;
+        }
+
+        function buildPlaceholderRow() {
+            return `
+                <tr class="placeholder-row">
+                    <td class="fw-bold"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>取号中...</td>
+                    <td><span class="status-badge status-waiting">取号中</span></td>
+                    <td><div class="sms-cell"><span class="text-muted">正在申请号码，请稍候...</span></div></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary" disabled><i class="fa fa-hourglass-half"></i> 等待中</button>
+                    </td>
+                </tr>`;
+        }
+
+        function addPlaceholderRow() {
+            const tbody = $('#orderTable tbody');
+            // 如果已经有占位行，先移除
+            removePlaceholderRow();
+            // 在顶部添加占位行
+            const placeholder = buildPlaceholderRow();
+            tbody.prepend(placeholder);
+        }
+
+        function removePlaceholderRow() {
+            $('.placeholder-row').remove();
+        }
+
+        function renderOrders(orders) {
+            const tbody = $('#orderTable tbody');
+            if (!orders.length) {
+                tbody.html('<tr><td colspan="4" class="text-center text-muted py-4">暂无接码记录</td></tr>');
+                return;
+            }
+            tbody.html(orders.map(buildRow).join(''));
+            // 停止刷新动画
+            stopRefreshAnimations();
+        }
+
+        function refreshOrder(id, isAutoRefresh = false) {
+            // 如果是自动轮询，启动旋转动画
+            if (isAutoRefresh) {
+                startRefreshAnimation(id);
+            }
+            
+            api.get('/user/api/simClient/status', {id}).then(res => {
+                if (res.code !== 200) {
+                    if (!isAutoRefresh) {
+                        toast(res.msg || '刷新失败');
+                    }
+                    stopRefreshAnimations();
+                    return;
+                }
+                updateOrder(res.data.order);
+            }).catch(() => {
+                if (!isAutoRefresh) {
+                    toast('网络开小差了，请稍后再试');
+                }
+                stopRefreshAnimations();
+            });
+        }
+
+        function startRefreshAnimation(id) {
+            const $btn = $(`tr[data-id="${id}"] .js-refresh`);
+            if ($btn.length) {
+                $btn.addClass('btn-refreshing');
+                $btn.prop('disabled', true);
+            }
+        }
+
+        function stopRefreshAnimations() {
+            $('.btn-refreshing').removeClass('btn-refreshing');
+            $('.js-refresh').prop('disabled', false);
+        }
+
+        function updateOrder(order) {
+            const index = state.orders.findIndex(item => item.id === order.id);
+            if (index >= 0) {
+                state.orders[index] = order;
+            } else {
+                state.orders.unshift(order);
+            }
+            renderOrders(state.orders);
+        }
+
+        function startPolling() {
+            stopPolling();
+            refreshWaitingOrders();
+            state.polling = setInterval(() => {
+                refreshWaitingOrders();
+            }, state.interval * 3000);
+        }
+
+        function stopPolling() {
+            if (state.polling) {
+                clearInterval(state.polling);
+                state.polling = null;
+            }
+        }
+
+        function bindEvents() {
+            $('#startReceive').on('click', function () {
+                const $btn = $(this);
+                
+                // 按钮显示加载状态
+                $btn.addClass('loading-btn').prop('disabled', true);
+                
+                // 在列表顶部添加取号中的占位行
+                addPlaceholderRow();
+                
+                // 1秒后发送请求
+                setTimeout(() => {
+                    const request = api.post('/user/api/simClient/order');
+                    request.done(res => {
+                        if (res.code !== 200) {
+                            toast(res.msg || '申请失败');
+                            removePlaceholderRow();
+                            return;
+                        }
+                        toast('申请成功');
+                        state.orders = res.data.orders;
+                        renderOrders(state.orders);
+                        refreshWaitingOrders();
+                    });
+                    request.fail(() => {
+                        toast('网络开小差了，请稍后再试');
+                        removePlaceholderRow();
+                    });
+                    request.always(() => {
+                        $btn.removeClass('loading-btn').prop('disabled', false);
+                    });
+                }, 1000);
+            });
+
+            $('#orderTable').on('click', '.js-refresh', function () {
+                const $btn = $(this);
+                const id = $(this).closest('tr').data('id');
+                
+                // 添加旋转动画
+                $btn.addClass('btn-refreshing');
+                $btn.prop('disabled', true);
+                
+                refreshOrder(id, false);
+            });
+
+            $('#orderTable').on('click', '.js-cancel', function () {
+                const id = $(this).closest('tr').data('id');
+                api.post('/user/api/simClient/cancel', {id}).then(res => {
+                    if (res.code !== 200) {
+                        toast(res.msg || '取消失败');
+                        return;
+                    }
+                    updateOrder(res.data.order);
+                });
+            });
+        }
+
+        function init() {
+            renderOrders(state.orders);
+            bindEvents();
+            startPolling();
+        }
+
+        function refreshWaitingOrders() {
+            state.orders.filter(o => o.status === 'WAITING').forEach(o => refreshOrder(o.id, true));
+        }
+
+        return {init};
+    })(jQuery);
+
+    $(function () {
+        SimClientPage.init();
+    });
+</script>
+</body>
+</html>

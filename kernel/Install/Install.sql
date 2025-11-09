@@ -529,4 +529,26 @@ CREATE TABLE `__PREFIX__manage_log`  (
                                          INDEX `content`(`content`) USING BTREE
 ) ENGINE = MyISAM CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
+DROP TABLE IF EXISTS `__PREFIX__sim_client_order`;
+CREATE TABLE `__PREFIX__sim_client_order`  (
+                                               `id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                                               `session_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '访问会话',
+                                               `external_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '5sim 订单号',
+                                               `phone` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '手机号',
+                                               `status` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '状态',
+                                               `country` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '国家',
+                                               `operator` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '运营商',
+                                               `product` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '产品',
+                                               `price` decimal(10, 2) NULL DEFAULT 0.00 COMMENT '成本',
+                                               `sms_text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '短信内容',
+                                               `meta` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '原始响应',
+                                               `expires_at` datetime NULL DEFAULT NULL COMMENT '过期时间',
+                                               `is_deleted` tinyint UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否已删除',
+                                               `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                               `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                               PRIMARY KEY (`id`) USING BTREE,
+                                               INDEX `session_id`(`session_id` ASC) USING BTREE,
+                                               INDEX `status`(`status` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+
 SET FOREIGN_KEY_CHECKS = 1;
