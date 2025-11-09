@@ -16,4 +16,17 @@ abstract class Manage
     {
         return Context::get(\App\Consts\Manage::SESSION);
     }
+
+    /**
+     * 构造统一的 JSON 响应
+     */
+    protected function json(int $code, ?string $message = null, ?array $data = []): array
+    {
+        $payload = ['code' => $code];
+        if ($message !== null) {
+            $payload['msg'] = $message;
+        }
+        $payload['data'] = $data;
+        return $payload;
+    }
 }

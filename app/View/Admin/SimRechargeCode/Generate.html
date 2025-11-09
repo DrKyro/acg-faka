@@ -1,0 +1,190 @@
+#{include file="../Header.html"}
+
+<!--begin::Content-->
+<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+    <!--begin::Toolbar-->
+    #{include file="../Toolbar.html"}
+    <!--end::Toolbar-->
+    <!--begin::Post-->
+    <div class="post d-flex flex-column-fluid" id="kt_post">
+        <!--begin::Container-->
+        <div id="kt_content_container" class="container-fluid">
+            <!--begin::Card-->
+            <div class="card">
+                <!--begin::Card header-->
+                <div class="card-header">
+                    <h3 class="card-title align-items-start flex-column">
+                        <span class="card-label fw-bold text-dark">生成SIM兑换码</span>
+                    </h3>
+                    <div class="card-toolbar">
+                        <a href="/admin/simRechargeCode/index" class="btn btn-sm btn-light">返回列表</a>
+                    </div>
+                </div>
+                <!--end::Card header-->
+                <!--begin::Card body-->
+                <div class="card-body">
+                    <form id="generateForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="points" class="form-label required">兑换点数</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="points" name="points" min="0.1" step="0.1" value="10" required>
+                                        <span class="input-group-text">点</span>
+                                    </div>
+                                    <div class="form-text">每个兑换码可以兑换的点数</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="count" class="form-label required">生成数量</label>
+                                    <input type="number" class="form-control" id="count" name="count" min="1" max="100" value="10" required>
+                                    <div class="form-text">单次最多生成100个兑换码</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="expire_days" class="form-label">过期天数</label>
+                                    <input type="number" class="form-control" id="expire_days" name="expire_days" min="0" value="0">
+                                    <div class="form-text">0表示永不过期</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> 生成兑换码
+                                </button>
+                                <a href="/admin/simRechargeCode/index" class="btn btn-secondary">取消</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <!--end::Card body-->
+            </div>
+            <!--end::Card-->
+
+            <!--begin::Result Card (hidden by default)-->
+            <div class="card mt-5" id="resultCard" style="display: none;">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <span class="card-label fw-bold text-dark">生成的兑换码</span>
+                    </h3>
+                    <div class="card-toolbar">
+                        <button type="button" class="btn btn-sm btn-light" onclick="copyAllCodes()">
+                            <i class="fas fa-copy"></i> 复制全部
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-success" role="alert">
+                                成功生成 <span id="resultCount">0</span> 个兑换码
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th width="60">#</th>
+                                            <th>兑换码</th>
+                                            <th width="100">点数</th>
+                                            <th width="120">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="resultTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--end::Post-->
+</div>
+<!--end::Content-->
+
+#{include file="../Footer.html"}
+
+<script>
+let lastGeneratedCodes = [];
+
+$('#generateForm').submit(function(e) {
+    e.preventDefault();
+    
+    var formData = {
+        points: $('#points').val(),
+        count: $('#count').val(),
+        expire_days: $('#expire_days').val()
+    };
+    
+    $.post('/admin/simRechargeCode/doGenerate', formData, function(data) {
+        var succeeded = Number(data.code) === 0 || Number(data.code) === 200;
+        if (succeeded && data.data) {
+            showResult(data.data.codes || [], data.data.total || 0);
+        } else {
+            layer.msg(data.msg || '生成失败');
+        }
+    }).fail(function() {
+        layer.msg('网络错误');
+    });
+});
+
+function showResult(codes, total) {
+    lastGeneratedCodes = codes || [];
+    $('#resultCount').text(total);
+    $('#resultCard').show();
+    
+    var tbody = $('#resultTableBody');
+    tbody.empty();
+    
+    codes.forEach(function(code, index) {
+        var row = $('<tr>');
+        row.html(`
+            <td>${index + 1}</td>
+            <td><code class="text-success">${code}</code></td>
+            <td>${$('#points').val()}点</td>
+            <td>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="copyCode('${code}')">
+                    <i class="fas fa-copy"></i> 复制
+                </button>
+            </td>
+        `);
+        tbody.append(row);
+    });
+    
+    // 滚动到结果区域
+    $('html, body').animate({
+        scrollTop: $('#resultCard').offset().top - 100
+    }, 500);
+}
+
+function copyCode(code) {
+    copyToClipboard(code);
+    layer.msg('兑换码已复制到剪贴板');
+}
+
+function copyAllCodes() {
+    var codes = lastGeneratedCodes.length ? lastGeneratedCodes : $('#resultTableBody code').map(function(){return $(this).text();}).get();
+    copyToClipboard(codes.join('\r\n'));
+    layer.msg('所有兑换码已复制到剪贴板');
+}
+
+function copyToClipboard(text) {
+    var temp = $('<textarea>').css({position: 'fixed', top: '-9999px', left: '-9999px'});
+    $('body').append(temp);
+    temp.val(text).select();
+    document.execCommand('copy');
+    temp.remove();
+}
+</script>

@@ -1,0 +1,139 @@
+#{include file="../Header.html"}
+
+<!--begin::Content-->
+<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+    <!--begin::Toolbar-->
+    #{include file="../Toolbar.html"}
+    <!--end::Toolbar-->
+    <!--begin::Post-->
+    <div class="post d-flex flex-column-fluid" id="kt_post">
+        <!--begin::Container-->
+        <div id="kt_content_container" class="container-fluid">
+            <!--begin::Card-->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title align-items-start flex-column">
+                        <span class="card-label fw-bold text-dark">兑换码详情</span>
+                    </h3>
+                    <div class="card-toolbar">
+                        <a href="/admin/simRechargeCode/index" class="btn btn-sm btn-light">返回列表</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label">兑换码</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" value="#{$code.code}" readonly>
+                                    <button class="btn btn-outline-primary" type="button" onclick="copyCode('#{$code.code}')">
+                                        <i class="fas fa-copy"></i> 复制
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label">点数</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" value="#{$code.points}点" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label">状态</label>
+                                <div>
+                                    #{if $code.is_used}
+                                        <span class="badge badge-light-success fs-7">已使用</span>
+                                    #{elseif $code.expires_at && $code.expires_at < $smarty.now}
+                                        <span class="badge badge-light-danger fs-7">已过期</span>
+                                    #{else}
+                                        <span class="badge badge-light-info fs-7">未使用</span>
+                                    #{/if}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label">创建时间</label>
+                                <input type="text" class="form-control" value="#{$code.created_at}" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label">过期时间</label>
+                                <input type="text" class="form-control" value="#{if $code.expires_at}#{$code.expires_at}#{else}永不过期#{/if}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label">使用时间</label>
+                                <input type="text" class="form-control" value="#{if $code.used_at}#{$code.used_at}#{else}-#{/if}" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label">使用用户ID</label>
+                                <input type="text" class="form-control" value="#{if $code.used_user_id}#{$code.used_user_id}#{else}-#{/if}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label class="form-label">兑换码ID</label>
+                                <input type="text" class="form-control" value="#{$code.id}" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="button" class="btn btn-danger" onclick="deleteCode()">
+                                <i class="fas fa-trash"></i> 删除兑换码
+                            </button>
+                            <a href="/admin/simRechargeCode/index" class="btn btn-secondary">返回</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--end::Post-->
+</div>
+<!--end::Content-->
+
+#{include file="../Footer.html"}
+
+<script>
+function copyCode(code) {
+    var temp = $('<input>');
+    $('body').append(temp);
+    temp.val(code).select();
+    document.execCommand('copy');
+    temp.remove();
+    layer.msg('兑换码已复制到剪贴板');
+}
+
+function deleteCode() {
+    layer.confirm('确定要删除这个兑换码吗？', function() {
+        $.post('/admin/api/simRechargeCode/delete', {id: #{$code.id}}, function(data) {
+            if (data.code === 0) {
+                layer.msg('删除成功', function() {
+                    location.href = '/admin/simRechargeCode/index';
+                });
+            } else {
+                layer.msg(data.msg || '删除失败');
+            }
+        });
+    });
+}
+</script>

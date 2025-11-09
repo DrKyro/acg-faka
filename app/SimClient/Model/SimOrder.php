@@ -7,19 +7,36 @@ use Illuminate\Database\Eloquent\Model;
 
 class SimOrder extends Model
 {
-    protected $table = 'sim_client_order';
+    public const TABLE = 'phone_code_order';
+
+    protected $table = self::TABLE;
 
     protected $guarded = [];
 
     protected $casts = [
-        'expires_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'meta' => 'array',
+        'user_id' => 'integer',
+        'cost' => 'decimal:2',
+        'create_time' => 'datetime',
+        'update_time' => 'datetime',
+        'expire_time' => 'datetime',
     ];
 
-    public function scopeSession($query, string $sessionId)
+    // 字段映射
+    public $timestamps = false;
+
+    public function scopeUserId($query, ?int $userId = null)
     {
-        return $query->where('session_id', $sessionId)->where('is_deleted', 0);
+        if ($userId !== null) {
+            return $query->where('user_id', $userId);
+        }
+        return $query;
+    }
+
+    /**
+     * 检查订单是否成功（已收到短信）
+     */
+    public function isCompleted(): bool
+    {
+        return $this->status === 'RECEIVED' && !empty($this->sms_content);
     }
 }

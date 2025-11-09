@@ -8,4 +8,9 @@ return [
     'product' => 'redbook',
     'poll_interval' => 6,
     'poll_timeout' => 180,
+    
+    // 点数系统配置
+    'points_per_order' => 10,     // 每次接码消耗点数
+    'min_points' => 10,          // 最低点数检查
+    'enable_deduct_on_success' => true,  // 成功后扣费
 ];

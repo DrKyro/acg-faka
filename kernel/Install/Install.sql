@@ -532,6 +532,7 @@ CREATE TABLE `__PREFIX__manage_log`  (
 DROP TABLE IF EXISTS `__PREFIX__sim_client_order`;
 CREATE TABLE `__PREFIX__sim_client_order`  (
                                                `id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                                               `user_id` int UNSIGNED NULL DEFAULT NULL COMMENT 'sim用户ID',
                                                `session_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '访问会话',
                                                `external_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '5sim 订单号',
                                                `phone` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '手机号',
@@ -547,8 +548,63 @@ CREATE TABLE `__PREFIX__sim_client_order`  (
                                                `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                                `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
                                                PRIMARY KEY (`id`) USING BTREE,
+                                               INDEX `user_id`(`user_id` ASC) USING BTREE,
                                                INDEX `session_id`(`session_id` ASC) USING BTREE,
                                                INDEX `status`(`status` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+
+DROP TABLE IF EXISTS `__PREFIX__sim_client_user`;
+CREATE TABLE `__PREFIX__sim_client_user` (
+                                            `id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                                            `user_id` int UNSIGNED NOT NULL COMMENT '主站用户ID',
+                                            `points` decimal(10, 2) UNSIGNED NOT NULL DEFAULT 0.00 COMMENT '当前点数',
+                                            `total_points` decimal(10, 2) UNSIGNED NOT NULL DEFAULT 0.00 COMMENT '累计获得点数',
+                                            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                            `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                            PRIMARY KEY (`id`) USING BTREE,
+                                            UNIQUE KEY `uk_user_id`(`user_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+
+DROP TABLE IF EXISTS `__PREFIX__sim_client_recharge_code`;
+CREATE TABLE `__PREFIX__sim_client_recharge_code` (
+                                                      `id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                                                      `code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '兑换码',
+                                                      `points` decimal(10, 2) UNSIGNED NOT NULL COMMENT '可兑换点数',
+                                                      `is_used` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT '是否已使用',
+                                                      `used_user_id` int UNSIGNED NULL DEFAULT NULL COMMENT '使用用户ID',
+                                                      `used_at` timestamp NULL DEFAULT NULL COMMENT '使用时间',
+                                                      `expires_at` timestamp NULL DEFAULT NULL COMMENT '过期时间',
+                                                      `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                                      PRIMARY KEY (`id`) USING BTREE,
+                                                      UNIQUE KEY `uk_code`(`code` ASC) USING BTREE,
+                                                      INDEX `idx_is_used`(`is_used` ASC) USING BTREE,
+                                                      INDEX `idx_expires`(`expires_at` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+
+DROP TABLE IF EXISTS `__PREFIX__sim_client_recharge_log`;
+CREATE TABLE `__PREFIX__sim_client_recharge_log` (
+                                                      `id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                                                      `user_id` int UNSIGNED NOT NULL COMMENT 'sim用户ID',
+                                                      `points` decimal(10, 2) UNSIGNED NOT NULL COMMENT '充值点数',
+                                                      `code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '使用兑换码',
+                                                      `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                                      PRIMARY KEY (`id`) USING BTREE,
+                                                      INDEX `idx_user_id`(`user_id` ASC) USING BTREE,
+                                                      INDEX `idx_created`(`created_at` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+
+DROP TABLE IF EXISTS `__PREFIX__sim_client_deduct_log`;
+CREATE TABLE `__PREFIX__sim_client_deduct_log` (
+                                                   `id` int UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '主键id',
+                                                   `user_id` int UNSIGNED NOT NULL COMMENT 'sim用户ID',
+                                                   `order_id` int UNSIGNED NOT NULL COMMENT '接码订单ID',
+                                                   `points` decimal(10, 2) UNSIGNED NOT NULL COMMENT '扣费点数',
+                                                   `status` enum('pending', 'completed', 'failed') NOT NULL DEFAULT 'pending' COMMENT '扣费状态',
+                                                   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                                   PRIMARY KEY (`id`) USING BTREE,
+                                                   INDEX `idx_user_id`(`user_id` ASC) USING BTREE,
+                                                   INDEX `idx_order_id`(`order_id` ASC) USING BTREE,
+                                                   INDEX `idx_status`(`status` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 SET FOREIGN_KEY_CHECKS = 1;
