@@ -31,6 +31,11 @@ COPY . /var/www/html
 # 设置权限
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
+    
+# Create required runtime directories
+RUN mkdir -p /var/www/html/runtime/waf/PACKET /var/www/html/runtime/log && \
+    chown -R www-data:www-data /var/www/html/runtime && \
+    chmod -R 755 /var/www/html/runtime
 
 # 安装 PHP 依赖
 RUN composer install --optimize-autoloader --no-dev
