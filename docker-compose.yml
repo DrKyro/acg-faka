@@ -32,6 +32,14 @@ services:
       - ./docker/php/php.ini:/usr/local/etc/php/php.ini
     environment:
       - TZ=${TZ}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_CHARSET=${DB_CHARSET:-utf8mb4}
+      - DB_COLLATION=${DB_COLLATION:-utf8mb4_unicode_ci}
+      - DB_PREFIX=${DB_PREFIX:-acg_}
     depends_on:
       - mysql
     networks:
