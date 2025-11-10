@@ -4,3 +4,4 @@ terms
 *.log
 
 Pay/
+.DS_Store
