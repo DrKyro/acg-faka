@@ -172,43 +172,23 @@ class Index extends User
             }
 
             if ($val['shared'] && (int)$val['inventory_sync'] == 1) {
+                // 列表页不进行同步，只从缓存获取或显示默认值
                 $shopCache = FileCache::getJsonFile("shop", $val['id'] . "_shared");
                 if (!empty($shopCache)) {
-                    $inventory = $shopCache;
-                    if ($inventory['count'] === 0 && $inventory['delivery_way'] == 0) {
-                        //隐藏商品
-                        unset($data[$key]);
-                        continue;
-                    }
+                    $data[$key]['card_count'] = $shopCache['count'];
+                    $data[$key]['delivery_way'] = $shopCache['delivery_way'];
                 } else {
-                    $com = Commodity::query()->find($val['id']);
-                    try {
-                        $inventory = $this->shared->inventory($com->shared, $com);
-                        FileCache::setJsonFile("shop", $val['id'] . "_shared", $inventory, 300);
-
-                        if ($inventory['count'] === 0 && $inventory['delivery_way'] == 0) {
-                            //隐藏商品
-                            unset($data[$key]);
-                            continue;
-                        }
-                    } catch (\Throwable $e) {
-                        //如果抛异常，代表此商品出问题了，
-                        FileCache::setJsonFile("shop", $val['id'] . "_shared", [
-                            "count" => 0,
-                            "delivery_way" => 0
-                        ], 300);
-                        //隐藏商品
-                        unset($data[$key]);
-                        continue;
-                    }
+                    // 缓存不存在时显示默认值，详情页会进行真正同步
+                    $data[$key]['card_count'] = -1; // -1表示需要同步
+                    $data[$key]['delivery_way'] = $val['delivery_way'];
                 }
-                $data[$key]['card_count'] = $inventory['count'];
-                $data[$key]['delivery_way'] = $inventory['delivery_way'];
                 unset($data[$key]['shared']);
                 unset($data[$key]['shared_code']);
             } else {
                 $data[$key]['card_count'] = Card::query()->where("status", 0)->where("commodity_id", $val['id'])->count();
             }
+            
+            // 无论库存多少都不隐藏商品，让前端决定如何显示
 
             //如果登录后，则自动计算登录后的价格
             if ($user) {
@@ -273,10 +253,19 @@ class Index extends User
         $shared = \App\Model\Shared::query()->find($commodity->shared_id);
 
         if ($shared) {
+            // 在商品详情页进行库存同步
             $inventory = $this->shared->inventory($shared, $commodity);
+            FileCache::setJsonFile("shop", $commodity->id . "_shared", $inventory, 300);
+            
             $commodity->card = $inventory['count'];
             $commodity->delivery_way = $inventory['delivery_way'];
             $commodity->draft_status = $inventory['draft_status'];
+            
+            // 同步后检查库存，如果为0且是卡密商品则提示没有库存
+            if ($inventory['count'] === 0 && $inventory['delivery_way'] == 0) {
+                throw new JSONException("没有库存");
+            }
+            
             //同步远程平台价格
             if ($commodity->shared_sync == 1) {
                 $new = Commodity::query()->find($commodity->id);

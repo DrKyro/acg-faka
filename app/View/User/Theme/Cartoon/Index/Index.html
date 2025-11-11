@@ -188,7 +188,7 @@
             }
             $('.product').show(150);
             list.forEach(item => {
-                productInstance.append('<span class="button-click commodity-' + item.id + '" onclick="getCommodityInfo(this,' + item.id + ')" ' + ((item.card_count == 0 && item.delivery_way == 0 && !item.shared) ? 'style="background-color: #ced4dadb;opacity: 0.6;"' : '') + '>' + (item.cover ? '<img class="commodity-icon" src="' + item.cover + '">' : '') + ' ' + item.name + '</span>');
+                productInstance.append('<span class="button-click commodity-' + item.id + '" onclick="getCommodityInfo(this,' + item.id + ')">' + (item.cover ? '<img class="commodity-icon" src="' + item.cover + '">' : '') + ' ' + item.name + '</span>');
             });
 
             if (defaultCommodity) {
