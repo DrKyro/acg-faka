@@ -296,11 +296,11 @@ class Index extends User
                     $new->factory_price = $inventory['factory_price'];
                 }
 
-                $premiumConfig = \App\Model\Commodity::premiumConfig((string)$inventory['config'], (int)$commodity->shared_premium_type, (float)$commodity->shared_premium);
-                if ($new->config != $premiumConfig) {
-                    $new->config = $premiumConfig;
-                    $commodity->config = $new->config;
-                }
+                // $premiumConfig = \App\Model\Commodity::premiumConfig((string)$inventory['config'], (int)$commodity->shared_premium_type, (float)$commodity->shared_premium);
+                // if ($new->config != $premiumConfig) {
+                //     $new->config = $premiumConfig;
+                //     $commodity->config = $new->config;
+                // }
 
                 $new->save();
             }
