@@ -24,6 +24,8 @@ if [ ! -f ".env" ]; then
     echo "如需自定义配置，请创建 .env 文件"
 fi
 
+chmod -R 777 .
+
 # 构建并启动服务
 echo "正在构建并启动 Docker 服务..."
 docker-compose up -d
