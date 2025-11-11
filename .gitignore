@@ -6,3 +6,5 @@ terms
 Pay/
 .DS_Store/
 vendor
+
+config/database.php

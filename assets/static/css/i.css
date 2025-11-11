@@ -1397,3 +1397,34 @@ table {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
+.new-product-badge {
+    position: absolute;
+    top: -2px;
+    right: -8px;
+    background: linear-gradient(135deg, #ff4757, #ff3742);
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
+    animation: pulse 2s infinite;
+    z-index: 10;
+    line-height: 1;
+    min-width: 32px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
+    }
+    50% {
+        box-shadow: 0 2px 8px rgba(255, 71, 87, 0.6), 0 0 0 2px rgba(255, 71, 87, 0.1);
+    }
+    100% {
+        box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
+    }
+}

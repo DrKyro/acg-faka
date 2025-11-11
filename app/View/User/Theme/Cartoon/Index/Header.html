@@ -11,6 +11,37 @@
     <link rel="stylesheet" href="/assets/static/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/static/font/font-awesome-4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="/assets/static/css/i.css?v=#{$app.version}">
+    <style>
+        .new-product-badge {
+            position: absolute;
+            top: -2px;
+            right: -8px;
+            background: linear-gradient(135deg, #ff4757, #ff3742);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
+            animation: pulse 2s infinite;
+            z-index: 10;
+            line-height: 1;
+            min-width: 32px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
+            }
+            50% {
+                box-shadow: 0 2px 8px rgba(255, 71, 87, 0.6), 0 0 0 2px rgba(255, 71, 87, 0.1);
+            }
+            100% {
+                box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
+            }
+        }
+    </style>
 
     <script src="/assets/static/jquery.min.js"></script>
     <script src="/assets/static/jquery.sliderBar.js"></script>
@@ -38,7 +69,7 @@
                #{else}  <a href="/user/authentication/login?goto=/"><span style="position: relative;top: 4px;left: 10px;font-size: 18px;color: #79b9fbbd;font-weight: bold;"><i class="fa fa-sign-in"></i> 登录</span></a> #{/if}
            </div>
             <div class="row">
-                <a class="nav-link" href="/user/simClient/index" style="font-weight: bolder;"><i class="fa fa-bolt" aria-hidden="true" style="color: #FFD700;"></i>  大力接码</a>
+                <a class="nav-link" href="/user/simClient/index" style="font-weight: bolder; position: relative;"><i class="fa fa-bolt" aria-hidden="true" style="color: #FFD700;"></i>  大力接码<span class="new-product-badge">新品</span></a>
                 <a class="nav-link" href="/" style="font-weight: bolder;"><i class="fa fa-shopping-cart" aria-hidden="true"></i>  购物</a>
                 <a class="nav-link" href="/user/index/query"  style="font-weight: bolder;"><i class="fa fa-search-plus" aria-hidden="true"></i> 查订单</a>
             #{if $config.service_url}<a class="nav-link" href="#{$config.service_url}" target="_blank"  style="font-weight: bolder;"><i class="fa fa-twitch" aria-hidden="true"></i> 在线客服</a>#{/if}
