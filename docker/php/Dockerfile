@@ -1,5 +1,7 @@
 FROM php:8.1-fpm
 
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
     git \
@@ -28,9 +30,13 @@ WORKDIR /var/www/html
 # 复制项目文件
 COPY . /var/www/html
 
+# 复制入口脚本
+COPY docker/php/entrypoint.sh /usr/local/bin/app-entrypoint.sh
+
 # 设置权限
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
+    && chmod -R 755 /var/www/html \
+    && chmod +x /usr/local/bin/app-entrypoint.sh
     
 # Create required runtime directories
 RUN mkdir -p /var/www/html/runtime/waf/PACKET /var/www/html/runtime/log && \
@@ -44,4 +50,5 @@ RUN composer install --optimize-autoloader --no-dev
 EXPOSE 9000
 
 # 启动 PHP-FPM
+ENTRYPOINT ["/usr/local/bin/app-entrypoint.sh"]
 CMD ["php-fpm"]
